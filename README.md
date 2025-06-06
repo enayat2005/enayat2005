@@ -21,6 +21,608 @@ bool isPrime(int n) {
     }
     return true;
 }
+#include <iostream>
+#include <fstream>
+#include <vector>
+
+using namespace std;
+
+class Book {
+public:
+    string title;
+    string author;
+    int bookID;
+
+    Book(string t, string a, int id) : title(t), author(a), bookID(id) {}
+
+    void display() {
+        cout << "Book ID: " << bookID << ", Title: " << title << ", Author: " << author << endl;
+    }
+};
+
+class Library {
+private:
+    vector<Book> books;
+    string filename = "library.txt";
+
+public:
+    void addBook(string title, string author, int id) {
+        books.push_back(Book(title, author, id));
+        saveToFile();
+    }
+
+    void removeBook(int id) {
+        for (size_t i = 0; i < books.size(); i++) {
+            if (books[i].bookID == id) {
+                books.erase(books.begin() + i);
+                saveToFile();
+                return;
+            }
+        }
+        cout << "Book ID " << id << " not found." << endl;
+    }
+
+    void searchBook(int id) {
+        for (const auto &book : books) {
+            if (book.bookID == id) {
+                book.display();
+                return;
+            }
+        }
+        cout << "Book ID " << id << " not found." << endl;
+    }
+
+    void displayBooks() {
+        for (const auto &book : books) {
+            book.display();
+        }
+    }
+
+    void saveToFile() {
+        ofstream file(filename);
+        if (file.is_open()) {
+            for (const auto &book : books) {
+                file << book.bookID << "," << book.title << "," << book.author << endl;
+            }
+            file.close();
+        } else {
+            cout << "Error opening file." << endl;
+        }
+    }
+};
+
+int main() {
+    Library lib;
+    lib.addBook("The Catcher in the Rye", "J.D. Salinger", 101);
+    lib.addBook("To Kill a Mockingbird", "Harper Lee", 102);
+    lib.addBook("1984", "George Orwell", 103);
+
+    cout << "Library Books: " << endl;
+    lib.displayBooks();
+
+    cout << "\nSearching for book ID 102..." << endl;
+    lib.searchBook(102);
+
+    cout << "\nRemoving book ID 101..." << endl;
+    lib.removeBook(101);
+
+    cout << "\nUpdated Library Books: " << endl;
+    lib.displayBooks();
+
+    return 0;
+}
+#include <iostream>
+#include <fstream>
+#include <vector>
+#include <string>
+using namespace std;
+
+// Base class
+class Person {
+protected:
+    string name;
+    int age;
+public:
+    Person() {}
+    Person(string n, int a) : name(n), age(a) {}
+    virtual void display() {
+        cout << "Name: " << name << "\nAge: " << age << endl;
+    }
+    virtual string getType() {
+        return "Person";
+    }
+};
+
+// Derived class
+class Student : public Person {
+private:
+    int rollNo;
+    float marks;
+public:
+    Student() {}
+    Student(string n, int a, int r, float m) : Person(n, a), rollNo(r), marks(m) {}
+
+    void display() override {
+        cout << "\n--- Student Record ---" << endl;
+        cout << "Roll No: " << rollNo << "\nName: " << name << "\nAge: " << age << "\nMarks: " << marks << endl;
+    }
+
+    string getType() override {
+        return "Student";
+    }
+
+    int getRollNo() {
+        return rollNo;
+    }
+
+    void saveToFile(ofstream& fout) {
+        fout << name << "," << age << "," << rollNo << "," << marks << endl;
+    }
+
+    static Student loadFromString(const string& line) {
+        string n;
+        int a, r;
+        float m;
+        sscanf(line.c_str(), "%[^,],%d,%d,%f", &n[0], &a, &r, &m);
+        return Student(n, a, r, m);
+    }
+};
+
+// Manager class
+class StudentManager {
+private:
+    vector<Student> students;
+
+public:
+    void addStudent() {
+        string name;
+        int age, roll;
+        float marks;
+        cout << "\nEnter student details:" << endl;
+        cout << "Name: "; cin >> ws; getline(cin, name);
+        cout << "Age: "; cin >> age;
+        cout << "Roll No: "; cin >> roll;
+        cout << "Marks: "; cin >> marks;
+
+        students.push_back(Student(name, age, roll, marks));
+        cout << "Student added successfully!\n";
+    }
+
+    void displayAll() {
+        if (students.empty()) {
+            cout << "No student records available.\n";
+            return;
+        }
+        for (Student& s : students) {
+            s.display();
+        }
+    }
+
+    void searchByRollNo(int roll) {
+        bool found = false;
+        for (Student& s : students) {
+            if (s.getRollNo() == roll) {
+                s.display();
+                found = true;
+                break;
+            }
+        }
+        if (!found)
+            cout << "Student with roll number " << roll << " not found.\n";
+    }
+
+    void saveToFile(string filename) {
+        ofstream fout(filename);
+        for (Student& s : students)
+            s.saveToFile(fout);
+        fout.close();
+        cout << "Data saved to file successfully.\n";
+    }
+
+    void loadFromFile(string filename) {
+        ifstream fin(filename);
+        string line;
+        while (getline(fin, line)) {
+            string name;
+            int age, roll;
+            float marks;
+
+            size_t pos1 = line.find(',');
+            size_t pos2 = line.find(',', pos1 + 1);
+            size_t pos3 = line.find(',', pos2 + 1);
+
+            name = line.substr(0, pos1);
+            age = stoi(line.substr(pos1 + 1, pos2 - pos1 - 1));
+            roll = stoi(line.substr(pos2 + 1, pos3 - pos2 - 1));
+            marks = stof(line.substr(pos3 + 1));
+
+            students.push_back(Student(name, age, roll, marks));
+        }
+        fin.close();
+        cout << "Data loaded from file successfully.\n";
+    }
+};
+
+// Main function
+int main() {
+    StudentManager sm;
+    int choice;
+
+    do {
+        cout << "\n--- Student Management System ---\n";
+        cout << "1. Add Student\n";
+        cout << "2. Display All Students\n";
+        cout << "3. Search by Roll No\n";
+        cout << "4. Save to File\n";
+        cout << "5. Load from File\n";
+        cout << "0. Exit\n";
+        cout << "Enter your choice: ";
+        cin >> choice;
+
+        switch (choice) {
+        case 1: sm.addStudent(); break;
+        case 2: sm.displayAll(); break;
+        case 3: {
+            int roll;
+            cout << "Enter Roll No: ";
+            cin >> roll;
+            sm.searchByRollNo(roll);
+            break;
+        }
+        case 4: sm.saveToFile("students.txt"); break;
+        case 5: sm.loadFromFile("students.txt"); break;
+        case 0: cout << "Exiting program...\n"; break;
+        default: cout << "Invalid choice. Try again.\n";
+        }
+    } while (choice != 0);
+
+    return 0;
+}
+
+    #include <iostream>
+#include <fstream>
+#include <vector>
+#include <string>
+using namespace std;
+
+// Base class
+class Person {
+protected:
+    string name;
+    int age;
+public:
+    Person() {}
+    Person(string n, int a) : name(n), age(a) {}
+    virtual void display() {
+        cout << "Name: " << name << "\nAge: " << age << endl;
+    }
+    virtual string getType() {
+        return "Person";
+    }
+};
+
+// Derived class
+class Student : public Person {
+private:
+    int rollNo;
+    float marks;
+public:
+    Student() {}
+    Student(string n, int a, int r, float m) : Person(n, a), rollNo(r), marks(m) {}
+
+    void display() override {
+        cout << "\n--- Student Record ---" << endl;
+        cout << "Roll No: " << rollNo << "\nName: " << name << "\nAge: " << age << "\nMarks: " << marks << endl;
+    }
+
+    string getType() override {
+        return "Student";
+    }
+
+    int getRollNo() {
+        return rollNo;
+    }
+
+    void saveToFile(ofstream& fout) {
+        fout << name << "," << age << "," << rollNo << "," << marks << endl;
+    }
+
+    static Student loadFromString(const string& line) {
+        string n;
+        int a, r;
+        float m;
+        sscanf(line.c_str(), "%[^,],%d,%d,%f", &n[0], &a, &r, &m);
+        return Student(n, a, r, m);
+    }
+};
+
+// Manager class
+class StudentManager {
+private:
+    vector<Student> students;
+
+public:
+    void addStudent() {
+        string name;
+        int age, roll;
+        float marks;
+        cout << "\nEnter student details:" << endl;
+        cout << "Name: "; cin >> ws; getline(cin, name);
+        cout << "Age: "; cin >> age;
+        cout << "Roll No: "; cin >> roll;
+        cout << "Marks: "; cin >> marks;
+
+        students.push_back(Student(name, age, roll, marks));
+        cout << "Student added successfully!\n";
+    }
+
+    void displayAll() {
+        if (students.empty()) {
+            cout << "No student records available.\n";
+            return;
+        }
+        for (Student& s : students) {
+            s.display();
+        }
+    }
+
+    void searchByRollNo(int roll) {
+        bool found = false;
+        for (Student& s : students) {
+            if (s.getRollNo() == roll) {
+                s.display();
+                found = true;
+                break;
+            }
+        }
+        if (!found)
+            cout << "Student with roll number " << roll << " not found.\n";
+    }
+
+    void saveToFile(string filename) {
+        ofstream fout(filename);
+        for (Student& s : students)
+            s.saveToFile(fout);
+        fout.close();
+        cout << "Data saved to file successfully.\n";
+    }
+
+    void loadFromFile(string filename) {
+        ifstream fin(filename);
+        string line;
+        while (getline(fin, line)) {
+            string name;
+            int age, roll;
+            float marks;
+
+            size_t pos1 = line.find(',');
+            size_t pos2 = line.find(',', pos1 + 1);
+            size_t pos3 = line.find(',', pos2 + 1);
+
+            name = line.substr(0, pos1);
+            age = stoi(line.substr(pos1 + 1, pos2 - pos1 - 1));
+            roll = stoi(line.substr(pos2 + 1, pos3 - pos2 - 1));
+            marks = stof(line.substr(pos3 + 1));
+
+            students.push_back(Student(name, age, roll, marks));
+        }
+        fin.close();
+        cout << "Data loaded from file successfully.\n";
+    }
+};
+
+// Main function
+int main() {
+    StudentManager sm;
+    int choice;
+
+    do {
+        cout << "\n--- Student Management System ---\n";
+        cout << "1. Add Student\n";
+        cout << "2. Display All Students\n";
+        cout << "3. Search by Roll No\n";
+        cout << "4. Save to File\n";
+        cout << "5. Load from File\n";
+        cout << "0. Exit\n";
+        cout << "Enter your choice: ";
+        cin >> choice;
+
+        switch (choice) {
+        case 1: sm.addStudent(); break;
+        case 2: sm.displayAll(); break;
+        case 3: {
+            int roll;
+            cout << "Enter Roll No: ";
+            cin >> roll;
+            sm.searchByRollNo(roll);
+            break;
+        }
+        case 4: sm.saveToFile("students.txt"); break;
+        case 5: sm.loadFromFile("students.txt"); break;
+        case 0: cout << "Exiting program...\n"; break;
+        default: cout << "Invalid choice. Try again.\n";
+        }
+    } while (choice != 0);
+
+    return 0;
+}
+include <iostream>
+#include <fstream>
+#include <vector>
+#include <string>
+using namespace std;
+
+// Base class
+class Person {
+protected:
+    string name;
+    int age;
+public:
+    Person() {}
+    Person(string n, int a) : name(n), age(a) {}
+    virtual void display() {
+        cout << "Name: " << name << "\nAge: " << age << endl;
+    }
+    virtual string getType() {
+        return "Person";
+    }
+};
+
+// Derived class
+class Student : public Person {
+private:
+    int rollNo;
+    float marks;
+public:
+    Student() {}
+    Student(string n, int a, int r, float m) : Person(n, a), rollNo(r), marks(m) {}
+
+    void display() override {
+        cout << "\n--- Student Record ---" << endl;
+        cout << "Roll No: " << rollNo << "\nName: " << name << "\nAge: " << age << "\nMarks: " << marks << endl;
+    }
+
+    string getType() override {
+        return "Student";
+    }
+
+    int getRollNo() {
+        return rollNo;
+    }
+
+    void saveToFile(ofstream& fout) {
+        fout << name << "," << age << "," << rollNo << "," << marks << endl;
+    }
+
+    static Student loadFromString(const string& line) {
+        string n;
+        int a, r;
+        float m;
+        sscanf(line.c_str(), "%[^,],%d,%d,%f", &n[0], &a, &r, &m);
+        return Student(n, a, r, m);
+    }
+};
+
+// Manager class
+class StudentManager {
+private:
+    vector<Student> students;
+
+public:
+    void addStudent() {
+        string name;
+        int age, roll;
+        float marks;
+        cout << "\nEnter student details:" << endl;
+        cout << "Name: "; cin >> ws; getline(cin, name);
+        cout << "Age: "; cin >> age;
+        cout << "Roll No: "; cin >> roll;
+        cout << "Marks: "; cin >> marks;
+
+        students.push_back(Student(name, age, roll, marks));
+        cout << "Student added successfully!\n";
+    }
+
+    void displayAll() {
+        if (students.empty()) {
+            cout << "No student records available.\n";
+            return;
+        }
+        for (Student& s : students) {
+            s.display();
+        }
+    }
+
+    void searchByRollNo(int roll) {
+        bool found = false;
+        for (Student& s : students) {
+            if (s.getRollNo() == roll) {
+                s.display();
+                found = true;
+                break;
+            }
+        }
+        if (!found)
+            cout << "Student with roll number " << roll << " not found.\n";
+    }
+
+    void saveToFile(string filename) {
+        ofstream fout(filename);
+        for (Student& s : students)
+            s.saveToFile(fout);
+        fout.close();
+        cout << "Data saved to file successfully.\n";
+    }
+
+    void loadFromFile(string filename) {
+        ifstream fin(filename);
+        string line;
+        while (getline(fin, line)) {
+            string name;
+            int age, roll;
+            float marks;
+
+            size_t pos1 = line.find(',');
+            size_t pos2 = line.find(',', pos1 + 1);
+            size_t pos3 = line.find(',', pos2 + 1);
+
+            name = line.substr(0, pos1);
+            age = stoi(line.substr(pos1 + 1, pos2 - pos1 - 1));
+            roll = stoi(line.substr(pos2 + 1, pos3 - pos2 - 1));
+            marks = stof(line.substr(pos3 + 1));
+
+            students.push_back(Student(name, age, roll, marks));
+        }
+        fin.close();
+        cout << "Data loaded from file successfully.\n";
+    }
+};
+
+// Main function
+int main() {
+    StudentManager sm;
+    int choice;
+
+    do {
+        cout << "\n--- Student Management System ---\n";
+        cout << "1. Add Student\n";
+        cout << "2. Display All Students\n";
+        cout << "3. Search by Roll No\n";
+        cout << "4. Save to File\n";
+        cout << "5. Load from File\n";
+        cout << "0. Exit\n";
+        cout << "Enter your choice: ";
+        cin >> choice;
+
+        switch (choice) {
+        case 1: sm.addStudent(); break;
+        case 2: sm.displayAll(); break;
+        case 3: {
+            int roll;
+            cout << "Enter Roll No: ";
+            cin >> roll;
+            sm.searchByRollNo(roll);
+            break;
+        }
+        case 4: sm.saveToFile("students.txt"); break;
+        case 5: sm.loadFromFile("students.txt"); break;
+        case 0: cout << "Exiting program...\n"; break;
+        default: cout << "Invalid choice. Try again.\n";
+        }
+    } while (choice != 0);
+
+    return 0;
+}
+💡 Features Used:
+Classes and Inheritance
+
+Function Overriding
+
+File I/O (ifstream, ofstream)
+
+Vectors
+
+
 
 int main() {
     int num;
@@ -439,25 +1041,99 @@ void modifyAccount(int n) {
     bool found = false;
 
     while (!file.eof() && !found) {
-        streampos pos = file.tellg();
-        file.read(reinterpret_cast<char *>(&acc), sizeof(Account));
-        if (acc.getAccountNumber() == n) {
-            acc.showAccount();
-            acc.modify();
-            file.seekp(pos);
-            file.write(reinterpret_cast<char *>(&acc), sizeof(Account));
-            found = true;
+void modifyAcoount(int n)
+    acoount acc;
+    fstrm file("account.dat", ios::binarry | ios::in | ios::out);
+ifstream in file.read acoount.dat "ios::binary);
+cout <<"\n==aLL Account holder ===\n";
+    cout intfile.read (recipent _cast
+#include <iostream>
+#include <fstream>
+#include <vector>
+
+using namespace std;
+
+class Book {
+public:
+    string title;
+    string author;
+    int bookID;
+
+    Book(string t, string a, int id) : title(t), author(a), bookID(id) {}
+
+    void display() {
+        cout << "Book ID: " << bookID << ", Title: " << title << ", Author: " << author << endl;
+    }
+};
+
+class Library {
+private:
+    vector<Book> books;
+    string filename = "library.txt";
+
+public:
+    void addBook(string title, string author, int id) {
+        books.push_back(Book(title, author, id));
+        saveToFile();
+    }
+
+    void removeBook(int id) {
+        for (size_t i = 0; i < books.size(); i++) {
+            if (books[i].bookID == id) {
+                books.erase(books.begin() + i);
+                saveToFile();
+                return;
+            }
+        }
+        cout << "Book ID " << id << " not found." << endl;
+    }
+
+    void searchBook(int id) {
+        for (const auto &book : books) {
+            if (book.bookID == id) {
+                book.display();
+                return;
+            }
+        }
+        cout << "Book ID " << id << " not found." << endl;
+    }
+
+    void displayBooks() {
+        for (const auto &book : books) {
+            book.display();
         }
     }
-    file.close();
-    if (!found)
-        cout << "\nAccount Not Found!\n";
+
+    void saveToFile() {
+        ofstream file(filename);
+        if (file.is_open()) {
+            for (const auto &book : books) {
+                file << book.bookID << "," << book.title << "," << book.author << endl;
+            }
+            file.close();
+        } else {
+            cout << "Error opening file." << endl;
+        }
+    }
+};
+
+int main() {
+    Library lib;
+    lib.addBook("The Catcher in the Rye", "J.D. Salinger", 101);
+    lib.addBook("To Kill a Mockingbird", "Harper Lee", 102);
+    lib.addBook("1984", "George Orwell", 103);
+
+    cout << "Library Books: " << endl;
+    lib.displayBooks();
+
+    cout << "\nSearching for book ID 102..." << endl;
+    lib.searchBook(102);
+
+    cout << "\nRemoving book ID 101..." << endl;
+    lib.removeBook(101);
+
+    cout << "\nUpdated Library Books: " << endl;
+    lib.displayBooks();
+
+    return 0;
 }
-
-void deleteAccount(int n) {
-    Account acc;
-    ifstream inFile("accounts.dat", ios::binary);
-    ofstream outFile("temp.dat", ios::binary);
-    bool found = false;
-
-while (!flile.eof() && ! file.read(reainterprit_ anc()eff![].
