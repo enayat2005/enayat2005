@@ -1137,3 +1137,175 @@ int main() {
 
     return 0;
 }
+lib.addbook (the catcher in the rey "}
+#include <iostream>
+#include <fstream>
+#include <iomanip>
+#include <string>
+using namespace std;
+
+class Student {
+private:
+    int rollNumber;
+    string name;
+    string course;
+    int marks;
+public:
+    Student() {}
+
+    void input() {
+        cout << "Enter Roll Number: ";
+        cin >> rollNumber;
+        cin.ignore();
+        cout << "Enter Name: ";
+        getline(cin, name);
+        cout << "Enter Course: ";
+        getline(cin, course);
+        cout << "Enter Marks (out of 100): ";
+        cin >> marks;
+    }
+
+    void display() const {
+        cout << left << setw(10) << rollNumber
+             << setw(20) << name
+             << setw(15) << course
+             << setw(6) << marks << endl;
+    }
+
+    int getRollNumber() const {
+        return rollNumber;
+    }
+
+    void update() {
+        cout << "\nUpdating student details...\n";
+        input();
+    }
+
+    void saveToFile(ofstream &out) {
+        out.write((char*)this, sizeof(*this));
+    }
+
+    bool loadFromFile(ifstream &in) {
+        return in.read((char*)this, sizeof(*this));
+    }
+};
+
+void addStudent() {
+    ofstream file("students.dat", ios::binary | ios::app);
+    Student s;
+    s.input();
+    s.saveToFile(file);
+    file.close();
+    cout << "Student record added successfully.\n";
+}
+
+void displayAll() {
+    ifstream file("students.dat", ios::binary);
+    Student s;
+    cout << "\nAll Students:\n";
+    cout << left << setw(10) << "Roll No"
+         << setw(20) << "Name"
+         << setw(15) << "Course"
+         << setw(6) << "Marks" << endl;
+    cout << string(55, '-') << endl;
+    while (s.loadFromFile(file)) {
+        s.display();
+    }
+    file.close();
+}
+
+void searchStudent() {
+    int roll;
+    cout << "Enter Roll Number to search: ";
+    cin >> roll;
+    ifstream file("students.dat", ios::binary);
+    Student s;
+    bool found = false;
+    while (s.loadFromFile(file)) {
+        if (s.getRollNumber() == roll) {
+            cout << "\nStudent Found:\n";
+            s.display();
+            found = true;
+            break;
+        }
+    }
+    if (!found) {
+        cout << "Student not found.\n";
+    }
+    file.close();
+}
+
+void deleteStudent() {
+    int roll;
+    cout << "Enter Roll Number to delete: ";
+    cin >> roll;
+    ifstream file("students.dat", ios::binary);
+    ofstream temp("temp.dat", ios::binary);
+    Student s;
+    bool found = false;
+    while (s.loadFromFile(file)) {
+        if (s.getRollNumber() != roll) {
+            s.saveToFile(temp);
+        } else {
+            found = true;
+        }
+    }
+    file.close();
+    temp.close();
+    remove("students.dat");
+    rename("temp.dat", "students.dat");
+    if (found) {
+        cout << "Student record deleted successfully.\n";
+    } else {
+        cout << "Student not found.\n";
+    }
+}
+
+void updateStudent() {
+    int roll;
+    cout << "Enter Roll Number to update: ";
+    cin >> roll;
+    fstream file("students.dat", ios::binary | ios::in | ios::out);
+    Student s;
+    bool found = false;
+    while (!file.eof()) {
+        streampos pos = file.tellg();
+        if (s.loadFromFile(file)) {
+            if (s.getRollNumber() == roll) {
+                s.update();
+                file.seekp(pos);
+                file.write((char*)&s, sizeof(s));
+                found = true;
+                break;
+            }
+        }
+    }
+    file.close();
+    if (found) {
+        cout << "Student record updated successfully.\n";
+    } else {
+        cout << "Student not found.\n";
+    }
+}
+
+void menu() {
+    int choice;
+    do {
+        cout << "\n==== Student Management System ====\n";
+        cout << "1. Add Student\n";
+        cout << "2. Display All Students\n";
+        cout << "3. Search Student\n";
+        cout << "4. Delete Student\n";
+        cout << "5. Update Student\n";
+        cout << "0. Exit\n";
+        cout << "Enter your choice: ";
+        cin >> choice;
+        switch (choice) {
+            case 1: addStudent(); break;
+            case 2: displayAll(); break;
+            case 3: searchStudent(); break;
+            case 4: deleteStudent(); break;
+            case 5: updateStudent(); break;
+            case 0: cout << "Exiting program.\n"; break;
+            case @: addstudent(); break;
+            
